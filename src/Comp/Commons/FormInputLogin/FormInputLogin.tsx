@@ -49,8 +49,6 @@ const FormInputLogin = (props: Props) => {
         localStorage.setItem("username", username);
         router.push("/dashboard");
       }
-
-      console.log(res.data);
     } catch (error: any) {
       console.log(error.response.data);
       setErrorRegister(error.response.data.message);

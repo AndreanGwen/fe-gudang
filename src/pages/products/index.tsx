@@ -1,32 +1,58 @@
-import CardHome from "@/Comp/Commons/CardHome";
 import Sidebar from "@/Comp/Commons/Sidebar";
-import { AvatarFallback, AvatarImage, Avatar } from "@/components/ui/avatar";
+import ProductsCard from "@/Comp/Views/ProductsCard";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { CgLogOut } from "react-icons/cg";
-import { FaAddressCard, FaRegUser } from "react-icons/fa";
-import { IoIosPricetags } from "react-icons/io";
+import { FaRegUser } from "react-icons/fa";
 import { IoSearch } from "react-icons/io5";
-import { MdPriceChange } from "react-icons/md";
 
-const DashboardPage = () => {
+type JWTPayload = {
+  exp: number;
+  iat: number;
+  id: string;
+  username: string;
+};
+
+const Products = () => {
   const router = useRouter();
   const [username, setUsername] = useState("");
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.push("/auth/login");
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode<JWTPayload>(token);
+      const now = Date.now() / 1000;
+
+      if (decoded.exp < now) {
+        localStorage.removeItem("token");
+        router.push("/auth/login");
+      }
+    } catch (err) {
+      console.error("Token tidak valid:", err);
+      localStorage.removeItem("token");
+      router.push("/auth/login");
+    }
     setUsername(localStorage.getItem("username") || "");
   }, [router]);
 
   return (
     <div className={`w-full min-h-screen bg-[#ebebeb] flex`}>
-      <Sidebar></Sidebar>
+      <Sidebar />
 
       <div className={`w-full pr-7 pl-7`}>
         <div className={`pt-7 w-full flex justify-between`}>
           <div
             className={`w-[70%] h-20 bg-white rounded-3xl flex items-center p-5 shadow-md justify-between`}
           >
-            <h1 className={`text-2xl font-bold`}>Overview</h1>
+            <h1 className={`text-2xl font-bold`}>Products</h1>
             <div
               className={`bg-[#ebebeb] p-2 rounded-full flex items-center justify-center cursor-pointer`}
             >
@@ -69,10 +95,10 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <CardHome />
+        <ProductsCard />
       </div>
     </div>
   );
 };
 
-export default DashboardPage;
+export default Products;

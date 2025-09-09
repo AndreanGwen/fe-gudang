@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { BiSolidCategory } from "react-icons/bi";
 import { FaBox } from "react-icons/fa";
@@ -26,35 +27,51 @@ const Sidebar = () => {
       </div>
 
       <div className={`pt-3 pl-3 flex flex-col gap-2`}>
-        <div
-          className={`flex items-center gap-2 w-full h-fit p-3  ${
-            router.asPath == "/dashboard" ? "bg-[#ebeff8]" : "bg-transparent"
-          } cursor-pointer rounded-md`}
-        >
-          <TbHomeFilled
-            size={20}
-            color={`${router.asPath == "/dashboard" ? "#0c48cc" : "#000000"} `}
-          />
-          <h1 className={`text-[#0a49ce] font-semibold`}>Overview</h1>
-        </div>
-
-        <div
-          className={`flex items-center gap-2 w-full h-fit p-3  ${
-            router.asPath == "/products" ? "bg-[#ebeff8]" : "bg-transparent"
-          } cursor-pointer rounded-md`}
-        >
-          <FaBox
-            size={20}
-            color={`${router.asPath == "/products" ? "#0c48cc" : "#000000"}`}
-          />
-          <h1
-            className={` ${
-              router.asPath == "/products" ? "text-[#ebeff8]" : "bg-transparent"
-            } font-semibold`}
+        <Link href={`/dashboard`}>
+          <div
+            className={`flex items-center gap-2 w-full h-fit p-3  ${
+              router.asPath == "/dashboard" ? "bg-[#ebeff8]" : "bg-transparent"
+            } cursor-pointer rounded-md`}
           >
-            Products
-          </h1>
-        </div>
+            <TbHomeFilled
+              size={20}
+              color={`${
+                router.asPath == "/dashboard" ? "#0c48cc" : "#000000"
+              } `}
+            />
+            <h1
+              className={`${
+                router.asPath == "/dashboard"
+                  ? "text-[#0a49ce]"
+                  : "bg-transparent"
+              } font-semibold`}
+            >
+              Overview
+            </h1>
+          </div>
+        </Link>
+
+        <Link href={`/products`}>
+          <div
+            className={`flex items-center gap-2 w-full h-fit p-3  ${
+              router.asPath == "/products" ? "bg-[#ebeff8]" : "bg-transparent"
+            } cursor-pointer rounded-md`}
+          >
+            <FaBox
+              size={20}
+              color={`${router.asPath == "/products" ? "#0c48cc" : "#000000"}`}
+            />
+            <h1
+              className={` ${
+                router.asPath == "/products"
+                  ? "text-[#0a49ce]"
+                  : "bg-transparent"
+              } font-semibold`}
+            >
+              Products
+            </h1>
+          </div>
+        </Link>
 
         <div
           className={`flex items-center gap-2 w-full h-fit p-3  ${
