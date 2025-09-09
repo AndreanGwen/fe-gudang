@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -11,6 +12,11 @@ interface Props {
   subTitle: string;
   linkPage: string;
 }
+
+type LoginResponse = {
+  message: string;
+  token: string;
+};
 
 const FormInputLogin = (props: Props) => {
   const { title, subTitle, linkPage } = props;
@@ -23,14 +29,26 @@ const FormInputLogin = (props: Props) => {
   const [password, setPassword] = useState("");
   const [erorrRegister, setErrorRegister] = useState("");
 
+  const localHost = process.env.NEXT_PUBLIC_LOCALHOSTBE;
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(`http://localhost:3000/api/auth/login`, {
-        username,
-        password,
-      });
+      const res = await axios.post<LoginResponse>(
+        `${localHost}/api/auth/login`,
+        {
+          username,
+          password,
+        }
+      );
+
+      if (res.status === 200) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("username", username);
+        router.push("/dashboard");
+      }
 
       console.log(res.data);
     } catch (error: any) {
