@@ -1,4 +1,15 @@
 import { Alert, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
@@ -6,6 +17,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { BiSolidCategoryAlt } from "react-icons/bi";
+import { LuRefreshCw } from "react-icons/lu";
 
 interface ProductResponse {
   data: any;
@@ -29,11 +41,46 @@ const ProductsCard = () => {
   const [qty, setQty] = useState<number | "">("");
   const [image, setImage] = useState("");
   const [message, setMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [editProduct, setEditProduct] = useState(false);
+  const [ID, setID] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     try {
       const res = await axios.post(`${localHost}/api/product`, {
+        name,
+        category,
+        price,
+        description,
+        qty,
+        image,
+      });
+
+      if (res.status === 200) {
+        setMessage((res.data as { message: string }).message);
+      }
+    } catch (error: any) {
+      console.log(error);
+      setMessage(error.response.data.message);
+    }
+  };
+
+  const handleDelete = async (productName: string) => {
+    try {
+      const res = await axios.delete(`${localHost}/api/product/${productName}`);
+      if (res.status === 200) {
+        const data = res.data as { message: string };
+        setSuccessMessage(data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      setSuccessMessage("Failed to delete product");
+    }
+  };
+
+  const handleEdit = async (id: string) => {
+    try {
+      const res = await axios.put(`${localHost}/api/product/${id}`, {
         name,
         category,
         price,
@@ -56,7 +103,14 @@ const ProductsCard = () => {
       <div
         className={`w-[62%] h-fit bg-white rounded-2xl shadow-md p-5 flex flex-col`}
       >
-        <h1 className={`text-lg font-semibold`}>All Product</h1>
+        <div className={`flex items-center justify-between`}>
+          <h1 className={`text-lg font-semibold`}>All Product</h1>
+          <LuRefreshCw
+            onClick={() => window.location.reload()}
+            className={`cursor-pointer`}
+          />
+        </div>
+        <div className="">{successMessage}</div>
 
         <div className={`flex flex-wrap gap-4 justify-between pt-3`}>
           {products.map((item: any) => {
@@ -85,7 +139,9 @@ const ProductsCard = () => {
                           currency: "IDR",
                         })}
                       </p>
-                      <p className={`font-normal text-[12px] pt-1`}>
+                      <p
+                        className={`font-normal text-[12px] pt-1 break-words whitespace-normal`}
+                      >
                         {item.description}
                       </p>
                     </div>
@@ -95,17 +151,55 @@ const ProductsCard = () => {
                         <BiSolidCategoryAlt size={17} />
                         <p className={``}>{item.category}</p>
                       </div>
-                      <div className={`flex gap-1`}>
+                      <div className={`flex gap-1 pl-1`}>
                         <Button
                           className={`w-10 h-7 text-[10px] rounded-full bg-[#1253d2] cursor-pointer`}
+                          onClick={() => {
+                            setName(item.name);
+                            setCategory(item.category);
+                            setPrice(item.price);
+                            setDescription(item.description);
+                            setQty(item.qty);
+                            setImage(item.image);
+                            setEditProduct(true);
+                            setID(item._id);
+                          }}
                         >
                           Edit
                         </Button>
-                        <Button
-                          className={`w-14 h-7 text-[10px] rounded-full bg-red-500 cursor-pointer`}
-                        >
-                          Delete
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              className={`w-13 h-7 text-[10px] rounded-full bg-red-500 cursor-pointer`}
+                            >
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you sure about deleting this product?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will
+                                permanently delete your product and remove your
+                                data from our servers.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  handleDelete(item.name);
+                                  window.location.reload();
+                                }}
+                                className={`cursor-pointer`}
+                              >
+                                Continue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </div>
@@ -118,16 +212,28 @@ const ProductsCard = () => {
       <div
         className={`w-[35%] h-fit bg-white rounded-2xl shadow-md pt-5 pr-5 pl-5 pb-5`}
       >
-        <div className={`text-lg font-semibold`}>Create / Edit Product</div>
+        <div className={`text-lg font-semibold`}>
+          {editProduct ? "Edit Product" : "Add New Product"}
+        </div>
 
         <div className={`pt-5`}>
-          <form onSubmit={handleSubmit} className={`flex flex-col gap-5`}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (editProduct) {
+                handleEdit(ID);
+              } else {
+                handleSubmit(e);
+              }
+            }}
+            className={`flex flex-col gap-5`}
+          >
             <div className={`flex flex-col gap-1`}>
               <h1 className={`text-[13px] font-semibold`}>Product Name</h1>
               <Input
                 type="text"
                 placeholder="ex: bergmund"
-                autoComplete="on"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -192,7 +298,7 @@ const ProductsCard = () => {
                 className={`w-1/3 bg-[#1253d2] cursor-pointer`}
                 type="submit"
               >
-                Submit
+                {editProduct ? "Edit" : "Add"}
               </Button>
             </div>
           </form>
