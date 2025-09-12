@@ -17,6 +17,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { BiSolidCategoryAlt } from "react-icons/bi";
+import { IoIosArrowDown } from "react-icons/io";
 import { LuRefreshCw } from "react-icons/lu";
 
 interface ProductResponse {
@@ -34,6 +35,8 @@ const ProductsCard = () => {
     });
   }, [router]);
 
+  const kategori = [...new Set(products?.map((item: any) => item.category))];
+
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState<number | "">("");
@@ -44,6 +47,7 @@ const ProductsCard = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [editProduct, setEditProduct] = useState(false);
   const [ID, setID] = useState("");
+  const [productCategory, setProductCategory] = useState<any>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     try {
@@ -98,13 +102,51 @@ const ProductsCard = () => {
     }
   };
 
+  const handleCategory = async (category: string) => {
+    try {
+      const res = await axios.get(
+        `${localHost}/api/product-list/category/${category}`
+      );
+
+      if (res.status === 200) {
+        setProductCategory(res.data);
+      }
+    } catch (error) {
+      console.log(error);
+      setProductCategory(null);
+    }
+  };
+
+  console.log(productCategory);
+
   return (
     <div className={`w-full h-fit pt-5 flex justify-between`}>
       <div
         className={`w-[62%] h-fit bg-white rounded-2xl shadow-md p-5 flex flex-col`}
       >
         <div className={`flex items-center justify-between`}>
-          <h1 className={`text-lg font-semibold`}>All Product</h1>
+          <div className={`flex items-center gap-14`}>
+            <h1 className={`text-lg font-semibold`}>All Product</h1>
+            <div className="flex gap-1 flex-wrap">
+              <div
+                className={`text-[13px] flex items-center gap-1 w-fit h-fit border border-[#164cc6] cursor-pointer hover:bg-blue-100 pr-2 rounded-full pl-2`}
+                onClick={() => handleCategory("all")}
+              >
+                <IoIosArrowDown /> All
+              </div>
+
+              {kategori.map((item: any) => {
+                return (
+                  <div
+                    className={`text-[13px] flex items-center gap-1 w-fit h-fit border border-[#164cc6] cursor-pointer hover:bg-blue-100 pr-2 rounded-full pl-2`}
+                    onClick={() => handleCategory(item)}
+                  >
+                    <IoIosArrowDown /> {item}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
           <LuRefreshCw
             onClick={() => window.location.reload()}
             className={`cursor-pointer`}
@@ -112,101 +154,196 @@ const ProductsCard = () => {
         </div>
         <div className="">{successMessage}</div>
 
-        <div className={`flex flex-wrap gap-4 justify-between pt-3`}>
-          {products.map((item: any) => {
-            return (
-              <>
-                {" "}
-                <div
-                  className={`w-[49%] h-[90px] flex items-center pt-2 pb-2 pl-2 pr-2 border-2 rounded-xl`}
-                >
-                  <div className={`w-[80px] h-full relative`}>
-                    <Image
-                      src={item.image}
-                      alt={`product`}
-                      fill
-                      className={`absolute rounded-xl`}
-                    ></Image>
-                  </div>
-                  <div
-                    className={`font-bold text-[15px] flex items-center justify-between w-full pl-2 `}
-                  >
-                    <div className="">
-                      <h1>{item.name}</h1>
-                      <p className={`text-[#1253d2]`}>
-                        {item.price.toLocaleString("id-ID", {
-                          style: "currency",
-                          currency: "IDR",
-                        })}
-                      </p>
-                      <p
-                        className={`font-normal text-[12px] pt-1 break-words whitespace-normal`}
+        <div className={`flex flex-wrap gap-4 justify-between pt-7`}>
+          {productCategory?.data
+            ? productCategory.data.map((item: any) => {
+                return (
+                  <>
+                    {" "}
+                    <div
+                      className={`w-[49%] h-[90px] flex items-center pt-2 pb-2 pl-2 pr-2 border-2 rounded-xl`}
+                    >
+                      <div className={`w-[80px] h-full relative`}>
+                        <Image
+                          src={item.image}
+                          alt={`product`}
+                          fill
+                          className={`absolute rounded-xl`}
+                        ></Image>
+                      </div>
+                      <div
+                        className={`font-bold text-[15px] flex items-center justify-between w-full pl-2 `}
                       >
-                        {item.description}
-                      </p>
-                    </div>
+                        <div className="">
+                          <h1>{item.name}</h1>
+                          <p className={`text-[#1253d2]`}>
+                            {item.price.toLocaleString("id-ID", {
+                              style: "currency",
+                              currency: "IDR",
+                            })}
+                          </p>
+                          <p
+                            className={`font-normal text-[12px] pt-1 break-words whitespace-normal`}
+                          >
+                            {item.description}
+                          </p>
+                        </div>
 
-                    <div className={`flex flex-col items-end gap-0.5`}>
-                      <div className={`flex items-center gap-1`}>
-                        <BiSolidCategoryAlt size={17} />
-                        <p className={``}>{item.category}</p>
-                      </div>
-                      <div className={`flex gap-1 pl-1`}>
-                        <Button
-                          className={`w-10 h-7 text-[10px] rounded-full bg-[#1253d2] cursor-pointer`}
-                          onClick={() => {
-                            setName(item.name);
-                            setCategory(item.category);
-                            setPrice(item.price);
-                            setDescription(item.description);
-                            setQty(item.qty);
-                            setImage(item.image);
-                            setEditProduct(true);
-                            setID(item._id);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                        <div className={`flex flex-col items-end gap-0.5`}>
+                          <div className={`flex items-center gap-1`}>
+                            <BiSolidCategoryAlt size={17} />
+                            <p className={``}>{item.category}</p>
+                          </div>
+                          <div className={`flex gap-1 pl-1`}>
                             <Button
-                              className={`w-13 h-7 text-[10px] rounded-full bg-red-500 cursor-pointer`}
+                              className={`w-10 h-7 text-[10px] rounded-full bg-[#1253d2] cursor-pointer`}
+                              onClick={() => {
+                                setName(item.name);
+                                setCategory(item.category);
+                                setPrice(item.price);
+                                setDescription(item.description);
+                                setQty(item.qty);
+                                setImage(item.image);
+                                setEditProduct(true);
+                                setID(item._id);
+                              }}
                             >
-                              Delete
+                              Edit
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Are you sure about deleting this product?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will
-                                permanently delete your product and remove your
-                                data from our servers.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => {
-                                  handleDelete(item.name);
-                                  window.location.reload();
-                                }}
-                                className={`cursor-pointer`}
-                              >
-                                Continue
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  className={`w-13 h-7 text-[10px] rounded-full bg-red-500 cursor-pointer`}
+                                >
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Are you sure about deleting this product?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete your product and remove
+                                    your data from our servers.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      handleDelete(item.name);
+                                      window.location.reload();
+                                    }}
+                                    className={`cursor-pointer`}
+                                  >
+                                    Continue
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </>
-            );
-          })}
+                  </>
+                );
+              })
+            : products.map((item: any) => {
+                return (
+                  <>
+                    {" "}
+                    <div
+                      className={`w-[49%] h-[90px] flex items-center pt-2 pb-2 pl-2 pr-2 border-2 rounded-xl`}
+                    >
+                      <div className={`w-[80px] h-full relative`}>
+                        <Image
+                          src={item.image}
+                          alt={`product`}
+                          fill
+                          className={`absolute rounded-xl`}
+                        ></Image>
+                      </div>
+                      <div
+                        className={`font-bold text-[15px] flex items-center justify-between w-full pl-2 `}
+                      >
+                        <div className="">
+                          <h1>{item.name}</h1>
+                          <p className={`text-[#1253d2]`}>
+                            {item.price.toLocaleString("id-ID", {
+                              style: "currency",
+                              currency: "IDR",
+                            })}
+                          </p>
+                          <p
+                            className={`font-normal text-[12px] pt-1 break-words whitespace-normal`}
+                          >
+                            {item.description}
+                          </p>
+                        </div>
+
+                        <div className={`flex flex-col items-end gap-0.5`}>
+                          <div className={`flex items-center gap-1`}>
+                            <BiSolidCategoryAlt size={17} />
+                            <p className={``}>{item.category}</p>
+                          </div>
+                          <div className={`flex gap-1 pl-1`}>
+                            <Button
+                              className={`w-10 h-7 text-[10px] rounded-full bg-[#1253d2] cursor-pointer`}
+                              onClick={() => {
+                                setName(item.name);
+                                setCategory(item.category);
+                                setPrice(item.price);
+                                setDescription(item.description);
+                                setQty(item.qty);
+                                setImage(item.image);
+                                setEditProduct(true);
+                                setID(item._id);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  className={`w-13 h-7 text-[10px] rounded-full bg-red-500 cursor-pointer`}
+                                >
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Are you sure about deleting this product?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete your product and remove
+                                    your data from our servers.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      handleDelete(item.name);
+                                      window.location.reload();
+                                    }}
+                                    className={`cursor-pointer`}
+                                  >
+                                    Continue
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })}
         </div>
       </div>
       <div

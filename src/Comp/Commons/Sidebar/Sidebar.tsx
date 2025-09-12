@@ -73,25 +73,31 @@ const Sidebar = () => {
           </div>
         </Link>
 
-        <div
-          className={`flex items-center gap-2 w-full h-fit p-3  ${
-            router.asPath == "/categories" ? "bg-[#ebeff8]" : "bg-transparent"
-          } cursor-pointer rounded-md`}
-        >
-          <BiSolidCategory
-            size={22}
-            color={`${router.asPath == "/categories" ? "#0c48cc" : "#000000"}`}
-          />
-          <h1
-            className={` ${
-              router.asPath == "/categories"
-                ? "text-[#ebeff8]"
+        <Link href={`/transaction`}>
+          <div
+            className={`flex items-center gap-2 w-full h-fit p-3  ${
+              router.asPath == "/transaction"
+                ? "bg-[#ebeff8]"
                 : "bg-transparent"
-            } font-semibold`}
+            } cursor-pointer rounded-md`}
           >
-            Categories
-          </h1>
-        </div>
+            <BiSolidCategory
+              size={22}
+              color={`${
+                router.asPath == "/transaction" ? "#0c48cc" : "#000000"
+              }`}
+            />
+            <h1
+              className={` ${
+                router.asPath == "/transaction"
+                  ? "text-[#0a49ce]"
+                  : "bg-transparent"
+              } font-semibold`}
+            >
+              Transaction
+            </h1>
+          </div>
+        </Link>
       </div>
     </div>
   );
