@@ -161,7 +161,9 @@ const ProductsCard = () => {
                   <>
                     {" "}
                     <div
-                      className={`w-[49%] h-[90px] flex items-center pt-2 pb-2 pl-2 pr-2 border-2 rounded-xl`}
+                      className={`w-[49%] h-[90px] flex items-center pt-2 pb-2 pl-2 pr-2 border-2 ${
+                        item.qty === 0 ? "border-red-500" : ""
+                      } rounded-xl `}
                     >
                       <div className={`w-[80px] h-full relative`}>
                         <Image
@@ -183,9 +185,13 @@ const ProductsCard = () => {
                             })}
                           </p>
                           <p
-                            className={`font-normal text-[12px] pt-1 break-words whitespace-normal`}
+                            className={`text-[12px] pt-1 break-words whitespace-normal ${
+                              item.qty === 0
+                                ? "text-red-500 font-bold"
+                                : "font-normal"
+                            }`}
                           >
-                            {item.description}
+                            {item.qty === 0 ? "Out of stock" : item.description}
                           </p>
                         </div>
 
@@ -255,7 +261,9 @@ const ProductsCard = () => {
                   <>
                     {" "}
                     <div
-                      className={`w-[49%] h-[90px] flex items-center pt-2 pb-2 pl-2 pr-2 border-2 rounded-xl`}
+                      className={`w-[49%] h-[90px] flex items-center pt-2 pb-2 pl-2 pr-2 border-2 ${
+                        item.qty === 0 ? "border-red-500" : ""
+                      } rounded-xl`}
                     >
                       <div className={`w-[80px] h-full relative`}>
                         <Image
@@ -277,9 +285,13 @@ const ProductsCard = () => {
                             })}
                           </p>
                           <p
-                            className={`font-normal text-[12px] pt-1 break-words whitespace-normal`}
+                            className={`text-[12px] pt-1 break-words whitespace-normal ${
+                              item.qty === 0
+                                ? "text-red-500 font-bold"
+                                : "font-normal"
+                            }`}
                           >
-                            {item.description}
+                            {item.qty === 0 ? "Out of stock" : item.description}
                           </p>
                         </div>
 

@@ -8,8 +8,6 @@ import { TbHomeFilled } from "react-icons/tb";
 const Sidebar = () => {
   const router = useRouter();
 
-  console.log(router.asPath);
-
   return (
     <div className={`w-1/5 min-h-screen bg-white p-5`}>
       <div className={`flex items-center gap-3`}>
