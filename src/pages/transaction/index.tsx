@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { CgLogOut } from "react-icons/cg";
 import { FaRegUser } from "react-icons/fa";
 import { IoSearch } from "react-icons/io5";
+import { LuRefreshCw } from "react-icons/lu";
 
 type JWTPayload = {
   exp: number;
@@ -26,6 +27,10 @@ type JWTPayload = {
   id: string;
   username: string;
 };
+
+interface Payment {
+  redirect_url: string;
+}
 
 const Transaction = () => {
   const invoices = [
@@ -77,6 +82,9 @@ const Transaction = () => {
   const localHost = process.env.NEXT_PUBLIC_LOCALHOSTBE;
   const [username, setUsername] = useState("");
   const [product, setProduct] = useState<any>([]);
+  const [cartProduct, setCartProduct] = useState<any>([]);
+  const [cartProductArray, setCartProductArray] = useState<any>([]);
+  const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
     try {
@@ -112,8 +120,6 @@ const Transaction = () => {
     }
   }, [router]);
 
-  const [cartProduct, setCartProduct] = useState<any>([]);
-
   const handleAddToCart = (id: string) => {
     const existingItem = cartProduct.find((item: any) => item.id === id);
     if (existingItem) {
@@ -132,7 +138,49 @@ const Transaction = () => {
     }
   };
 
-  console.log(cartProduct);
+  useEffect(() => {
+    if (cartProduct.length === 0) return;
+
+    Promise.all(
+      cartProduct.map((element: { id: string; qty: number }) =>
+        axios
+          .get(`${localHost}/api/product-list/product/${element.id}`)
+          .then((res) => ({
+            ...(res.data as { [key: string]: any }),
+            qty: element.qty,
+          }))
+      )
+    ).then((products) => {
+      setCartProductArray(products);
+    });
+  }, [cartProduct]);
+
+  const handleRemoveFromCart = (id: string) => {
+    console.log("Remove:", id);
+
+    setCartProductArray((prev: any) =>
+      prev.filter((item: any) => item.data._id !== id)
+    );
+  };
+
+  const buildPayload = () => {
+    const products = cartProductArray.map((item: any) => ({
+      productId: item.data._id,
+      name: item.data.name,
+      price: item.data.price,
+      qty: item.qty,
+    }));
+
+    const total = products.reduce(
+      (acc: number, p: any) => acc + p.price * p.qty,
+      0
+    );
+
+    return { products, total };
+  };
+
+  // console.log(cartProductArray);
+  // console.log(totalPrice);
 
   return (
     <div className={`w-full min-h-screen bg-[#ebebeb] flex`}>
@@ -234,6 +282,7 @@ const Transaction = () => {
                         disabled={item.qty === 0}
                         onClick={() => {
                           handleAddToCart(item._id);
+                          setTotalPrice((prev) => prev + item.price);
                         }}
                       >
                         Add to cart
@@ -256,16 +305,40 @@ const Transaction = () => {
                   <TableHead>Qty</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                   <TableHead className="text-right">Total Price</TableHead>
+                  <TableHead className="text-right flex items-center justify-end">
+                    <LuRefreshCw
+                      onClick={() => window.location.reload()}
+                      className={`cursor-pointer`}
+                    />
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cartProduct.map((item: any) => (
-                  <TableRow key={item}>
-                    <TableCell className="font-medium">{}</TableCell>
+                {cartProductArray.map((item: any) => (
+                  <TableRow key={item._id}>
+                    <TableCell className="font-medium">
+                      {item.data.name}
+                    </TableCell>
                     <TableCell>{item.qty}</TableCell>
-                    <TableCell className="text-right">{}</TableCell>
                     <TableCell className="text-right">
-                      {item.totalAmount}
+                      {item.data.price.toLocaleString("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(item.data.price * item.qty).toLocaleString("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        className={`bg-red-600 h-[20px] rounded-full cursor-pointer`}
+                        onClick={() => handleRemoveFromCart(item?.data?._id)}
+                      >
+                        -
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -273,7 +346,39 @@ const Transaction = () => {
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={3}>Total</TableCell>
-                  <TableCell className="text-right">$2,500.00</TableCell>
+                  <TableCell className="text-right">
+                    {totalPrice?.toLocaleString("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      className={`h-[20px] rounded-full cursor-pointer text-[10px]`}
+                      onClick={async () => {
+                        const payload = buildPayload();
+                        console.log(payload);
+
+                        const res = await axios.post(
+                          `${localHost}/api/payment`,
+                          payload
+                        );
+
+                        const redirectUrl = (
+                          res?.data as { data: { payment: Payment } }
+                        )?.data?.payment?.redirect_url;
+                        if (redirectUrl) {
+                          window.open(redirectUrl, "_blank"); // buka di tab baru
+                        } else {
+                          console.error(
+                            "Redirect URL tidak ditemukan di response"
+                          );
+                        }
+                      }}
+                    >
+                      Pay
+                    </Button>
+                  </TableCell>
                 </TableRow>
               </TableFooter>
             </Table>
